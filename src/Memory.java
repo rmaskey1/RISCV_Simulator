@@ -1,6 +1,7 @@
+package src;
 
 public class Memory {
-    private byte[] memory;
+    private int[] memory;
 
     public Memory(int memorySize){
         this.memory = new int[memorySize];
@@ -11,11 +12,11 @@ public class Memory {
     }
 
     // Returns word from memory given by address
-    public int getWord(int addr){
-        return (getHalfWord(addr+2) << 16) | (getHalfWord(addr) & 0xFFFF);
-    }
+    // public int getWord(int addr){
+    //     return (getHalfWord(addr+2) << 16) | (getHalfWord(addr) & 0xFFFF);
+    // }
 
-    public byte[] getMemory() {
+    public int[] getMemory() {
         return memory;
     }
 }

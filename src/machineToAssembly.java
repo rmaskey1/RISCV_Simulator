@@ -6,12 +6,13 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class machineToAssembly {
-    public static void machineToAssembly(){
+    public static void machineAssembly(){
         ArrayList<String> machineLanguageLine = new ArrayList<>();
         try {
-            System.out.println("What is the file path (Ex. C:\\Users\\Name\\downloads\\Simulator_tests\\zip\\addi_hazards.dat)");
-            Scanner scan = new Scanner(System.in);
-            String fileName = scan.nextLine();
+            // System.out.println("What is the file path (Ex. tests/dat_files/r_type.dat");
+            // Scanner scan = new Scanner(System.in);
+            // String fileName = scan.nextLine();
+            String fileName = "tests/dat_files/r_type.dat";
 
             File file = new File(fileName);
             Scanner fileScanner = new Scanner(file);
@@ -33,12 +34,12 @@ public class machineToAssembly {
 
         for(int i = 0; i < machineLanguageLine.size(); i++){
             System.out.println("Binary form " + machineLanguageLine.get(i));
-            System.out.println("Assembly Form " + bitToAssembly(machineLanguageLine.get(i)));
+            //System.out.println("Assembly Form " + bitToAssembly(machineLanguageLine.get(i)));
             System.out.println("");
         }
 
     }
-
+/* 
     public String bitToAssembly(){
         String instruction = "", arg1 = "", arg2 = "", arg3 = "";
         switch(opcode){
@@ -306,9 +307,9 @@ public class machineToAssembly {
         }
         return String.format("%s %s %s %s", instr, arg1, arg2, arg3);
     }
-
+*/
     public static void main(String[] args){
-        machineToAssembly();
+        machineAssembly();
     }
 
 }

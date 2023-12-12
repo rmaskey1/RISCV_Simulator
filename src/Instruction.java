@@ -1,3 +1,5 @@
+package src;
+
 public class Instruction {
     int instruction, opcode, rd, rs1, rs2, funct3, funct7, imm;
     boolean noRd = false;
@@ -18,7 +20,7 @@ public class Instruction {
         // Immediate is different for all types
 
         if (opcode == 0b1101111)  {// J-Type
-            this.imm =  getImmJ(instruction);
+            this.imm = getImmJ(instruction);
                
         }
         else if (opcode == 0b1100111 || opcode == 0b0000011 || opcode == 0b0010011 ) { // I-Type
@@ -43,15 +45,7 @@ public class Instruction {
                 
         }
 
-
-
-
-
-
-
-
-     
-        this.assemblyString = toAssemblyString();   // The instruction show in assembly code
+        this.assemblyString = bitToAssembly();   // The instruction show in assembly code
     }
 
 
@@ -77,232 +71,228 @@ public class Instruction {
      * Converts the instruction to an assembly string.
      * Returns the string
      */
-    private String toAssemblyString(){
+    public String bitToAssembly() {
         String instr = "", arg1 = "", arg2 = "", arg3 = "";
 
-
-
-
-        
-            // R-type instructions
-            if (opcode == (0b0110011)) { // ADD / SUB / SLL / SLT / SLTU / XOR / SRL / SRA / OR / AND
-                arg1 = String.format("x%d", rd);
-                arg2 = String.format("x%d", rs1);
-                arg3 = String.format("x%d", rs2);
-                if (funct3 == 0b000) { // add or sub
-                    if(funct7 == 0b0000000){ // ADD
-                        instr = "add";
-                        
-                    }
-                    else if (funct7 == 0b0100000) {//SUB
-                        instr = "sub";
-                        
-                    }
-                }
-                else if (funct3 == 0b001) { // SLL
-                    instr = "sll";
-                }
-                else if (funct3 == 0b010) { // SLT
-                    instr = "slt";
-                }
-
-                else if (funct3 == 0b011) {  //SLTU
-                    instr = "sltu";
-                }
-
-                else if (funct3 == 0b100) { //XOR
-                    instr = "xor";
-                }  
-                else if (funct3 == 0b101) { // SRL or SRA  
-                    if(funct7 == 0b0000000 ){ // SRL
-                        instr = "srl";
-                        
-                    }
-                    else if (funct7 == 0b0100000) { // SRA
-                        instr = "sra";
-                       
-                    }
+        // R-type instructions
+        if (opcode == (0b0110011)) { // ADD / SUB / SLL / SLT / SLTU / XOR / SRL / SRA / OR / AND
+            arg1 = String.format("x%d", rd);
+            arg2 = String.format("x%d", rs1);
+            arg3 = String.format("x%d", rs2);
+            if (funct3 == 0b000) { // add or sub
+                if(funct7 == 0b0000000){ // ADD
+                    instr = "add";
                     
                 }
-
-                else if (funct3 == 0b110) { // OR
-                    instr = "or";
+                else if (funct7 == 0b0100000) {//SUB
+                    instr = "sub";
+                    
                 }
-                else if (funct3 == 0b111) {   // and
-                    instr = "and";
+            }
+            else if (funct3 == 0b001) { // SLL
+                instr = "sll";
+            }
+            else if (funct3 == 0b010) { // SLT
+                instr = "slt";
+            }
+
+            else if (funct3 == 0b011) {  //SLTU
+                instr = "sltu";
+            }
+
+            else if (funct3 == 0b100) { //XOR
+                instr = "xor";
+            }  
+            else if (funct3 == 0b101) { // SRL or SRA  
+                if(funct7 == 0b0000000 ){ // SRL
+                    instr = "srl";
+                    
+                }
+                else if (funct7 == 0b0100000) { // SRA
+                    instr = "sra";
+                    
                 }
                 
-              
+            }
+
+            else if (funct3 == 0b110) { // OR
+                instr = "or";
+            }
+            else if (funct3 == 0b111) {   // and
+                instr = "and";
+            }
+            
+            
+        }   
+            
+        else if (opcode == 0b1101111) { //JAL
+            arg1 = String.format("x%d", rd);
+            arg2 = String.format("x%d", imm);
+            instr = "jal";
+            
+        }
+        else if (opcode == 0b1100111) { // JALR
+            arg1 = String.format("x%d", rd);
+            arg2 = String.format("x%d", imm);
+            instr = "jalr";
+            
+        }
+        else if (opcode == 0b0000011) { // LB / LH / LW / LBU / LHU
+            arg1 = String.format("x%d", rd);
+            arg2 = String.format("%d(x%d)", imm, rs1);
+            if (funct3 == 0b000){      // LB
+                instr = "lb";
+                
+            }
+            else if (funct3 == 0b001) { // LH
+                    instr = "lh";
+                    
+            }
+            
+            else if (funct3 == 0b010) {// LW
+                    instr = "lw";
+                    
             }   
-                
-            else if (opcode == 0b1101111) { //JAL
-                arg1 = String.format("x%d", rd);
-                arg2 = String.format("x%d", imm);
-                instr = "jal";
-                
-            }
-            else if (opcode == 0b1100111) { // JALR
-                arg1 = String.format("x%d", rd);
-                arg2 = String.format("x%d", imm);
-                instr = "jalr";
-                
-            }
-            else if (opcode == 0b0000011) { // LB / LH / LW / LBU / LHU
-                arg1 = String.format("x%d", rd);
-                arg2 = String.format("%d(x%d)", imm, rs1);
-                if (funct3 == 0b000){      // LB
-                    instr = "lb";
                     
-                }
-                else if (funct3 == 0b001) { // LH
-                        instr = "lh";
-                        
-                }
+            else if (funct3 == 0b100) { // LBU
+                    instr = "lbu";
                 
-                else if (funct3 == 0b010) {// LW
-                        instr = "lw";
-                        
-                }   
-                        
-                else if (funct3 == 0b100) { // LBU
-                        instr = "lbu";
-                    
-                }
-                else if (funct3 == 0b101) { // LHU
-                        instr = "lhu";
-                        
-                }
-              
             }
+            else if (funct3 == 0b101) { // LHU
+                    instr = "lhu";
+                    
+            }
+            
+        }
 
 
-            else if (opcode == 0b0010011) { // ADDI / SLTI / SLTIU / XORI / ORI / ANDI / SLLI / SRLI / SRAI
-                arg1 = String.format("x%d", rd);
-                arg2 = String.format("x%d", rs1);
-                arg3 = String.format("%d", imm);
-                    if (funct3 == 0b000){ // ADDI
-                        instr = "addi";
-                       
-                    }
-                        
-                    else if (funct3 == 0b010){ // SLTI
-                        instr = "slti";
-                        
-                    }
-                    else if (funct3 == 0b011){ // SLTIU
-                        instr = "sltiu";
-                       
-                    }
-                        
-                    else if (funct3 == 0b100){ // XORI
-                        instr = "xori";
-                        
-                    }
-                    else if (funct3 == 0b110){ // ORI
-                        instr = "ori";
-                  
-                    }
-                        
-                    else if (funct3 == 0b111){ // ANDI
-                        instr = "andi";
-                       
-                    }
-                        
-                    else if (funct3 == 0b001){ // SLLI
-                        instr = "slli";
-                        
-                    }
-                        
-                    else if (funct3 == 0b101){ // SRLI / SRAI
-                        if (funct7 == 0b0000000){ // SRLI
-                            instr = "srli";
-                            
-                        }
-                        else if (funct7 == 0b0100000){ // SRAI
-                            instr = "srai";
-                           
-                        }
-                   
-                    }
-             
-            }
-            //S-type instructions
-            else if (opcode == 0b0100011) { //SB / SH / SW
-                arg1 = String.format("x%d", rs2);
-                arg2 = String.format("%d(x%d)", imm, rs1);
-                
-                if(funct3 == 0b000){
-                    instr = "sb";
-               
-                }
-                else if(funct3 == 0b001){
-                    instr = "sh";
-                   
-                        
-                }
-                else if(funct3 == 0b010){
-                    instr = "sw";
-                   
-                }
-                noRd = true;
-                sType = true;
-               
-            }
-            //B-type instructions
-            else if (opcode == 0b1100011) { // BEQ / BNE / BLT / BGE / BLTU / BGEU
-                arg1 = String.format("x%d", rs1);
-                arg2 = String.format("x%d", rs2);
-                arg3 = String.format("%d", imm);
-                
-                
-                if(funct3 == 0b000){ //beq
-                    instr = "beq";
-                 
-                }
-                else if(funct3 == 0b001){ //bne
-                    instr = "bne";
-                  
-                }
-                else if(funct3 == 0b100){ //blt
-                    instr = "blt";
-                 
-                }
-                else if(funct3 == 0b101){ //bge
-                    instr = "bge";
+        else if (opcode == 0b0010011) { // ADDI / SLTI / SLTIU / XORI / ORI / ANDI / SLLI / SRLI / SRAI
+            arg1 = String.format("x%d", rd);
+            arg2 = String.format("x%d", rs1);
+            arg3 = String.format("%d", imm);
+                if (funct3 == 0b000){ // ADDI
+                    instr = "addi";
                     
                 }
-                else if(funct3 == 0b110){ //bltu
-                    instr = "bltu";
-              
+                    
+                else if (funct3 == 0b010){ // SLTI
+                    instr = "slti";
+                    
                 }
-                else if(funct3 == 0b111){ //blgeu
-                    instr = "blgeu";
-               
+                else if (funct3 == 0b011){ // SLTIU
+                    instr = "sltiu";
+                    
                 }
-
+                    
+                else if (funct3 == 0b100){ // XORI
+                    instr = "xori";
+                    
+                }
+                else if (funct3 == 0b110){ // ORI
+                    instr = "ori";
                 
-                noRd = true;
+                }
+                    
+                else if (funct3 == 0b111){ // ANDI
+                    instr = "andi";
+                    
+                }
+                    
+                else if (funct3 == 0b001){ // SLLI
+                    instr = "slli";
+                    
+                }
+                    
+                else if (funct3 == 0b101){ // SRLI / SRAI
+                    if (funct7 == 0b0000000){ // SRLI
+                        instr = "srli";
+                        
+                    }
+                    else if (funct7 == 0b0100000){ // SRAI
+                        instr = "srai";
+                        
+                    }
+                
+                }
+            
+        }
+        //S-type instructions
+        else if (opcode == 0b0100011) { //SB / SH / SW
+            arg1 = String.format("x%d", rs2);
+            arg2 = String.format("%d(x%d)", imm, rs1);
+            
+            if(funct3 == 0b000){
+                instr = "sb";
+            
+            }
+            else if(funct3 == 0b001){
+                instr = "sh";
+                
+                    
+            }
+            else if(funct3 == 0b010){
+                instr = "sw";
+                
+            }
+            noRd = true;
+            sType = true;
+            
+        }
+        //B-type instructions
+        else if (opcode == 0b1100011) { // BEQ / BNE / BLT / BGE / BLTU / BGEU
+            arg1 = String.format("x%d", rs1);
+            arg2 = String.format("x%d", rs2);
+            arg3 = String.format("%d", imm);
+            
+            
+            if(funct3 == 0b000){ //beq
+                instr = "beq";
+                
+            }
+            else if(funct3 == 0b001){ //bne
+                instr = "bne";
+                
+            }
+            else if(funct3 == 0b100){ //blt
+                instr = "blt";
+                
+            }
+            else if(funct3 == 0b101){ //bge
+                instr = "bge";
+                
+            }
+            else if(funct3 == 0b110){ //bltu
+                instr = "bltu";
+            
+            }
+            else if(funct3 == 0b111){ //blgeu
+                instr = "blgeu";
             
             }
 
-            //U-type instructions
-            else if (opcode == 0b0110111) { //LUI
-                arg1 = String.format("x%d", rd);
-                arg2 = String.format("%d", imm >>> 12);
-                instr = "lui";
-               
-            }
-
-            else if (opcode == 0b0010111) {//AUIPC
-                arg1 = String.format("x%d", rd);
-                arg2 = String.format("%d", imm >>> 12);
-                instr = "auipc";
-             
-            }
-            else {
-                return String.format("Unrecognized: 0x%08x", instruction);
-            }
+            
+            noRd = true;
         
-        return String.format("%s %s %s %s", instr, arg1, arg2, arg3);
         }
+
+        //U-type instructions
+        else if (opcode == 0b0110111) { //LUI
+            arg1 = String.format("x%d", rd);
+            arg2 = String.format("%d", imm >>> 12);
+            instr = "lui";
+            
+        }
+
+        else if (opcode == 0b0010111) {//AUIPC
+            arg1 = String.format("x%d", rd);
+            arg2 = String.format("%d", imm >>> 12);
+            instr = "auipc";
+            
+        }
+        else {
+            return String.format("Unrecognized: 0x%08x", instruction);
+        }
+    
+        return String.format("%s %s %s %s", instr, arg1, arg2, arg3);
+    }
 }
