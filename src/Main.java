@@ -2,7 +2,7 @@ public class Main {
     int pc = 0;                     // instructions counter
     int prev;                     // Previous pc
     int[] registerister = new int[32];        // RISC-V registeristers x0 to x31
-    private Instruction[] isntructions;  // Array of all instructions instructions
+    private Instruction[] intructions;  // Array of all instructions instructions
     private Memory memory;          // Memory byte array
 
     /**
@@ -14,6 +14,42 @@ public class Main {
         this.memory = memory;                      // Initialize Memory object
         this.instructions = instructions;                 // Initialize array of Instruction objects
         registerister[2] = memory.getMemory().length - 1; // Initialize stack pointer to point at last address. 
+
+        ArrayList<String> machineLanguageLine = new ArrayList<>();
+        try {
+        //     System.out.println("What is the file path (Ex. tests\\dat_files\\addi_hazards.dat)");
+        //     Scanner scan = new Scanner(System.in);
+        //     String fileName = scan.nextLine();
+            String fileName = "tests\\dat_files\\addi_hazards.dat";
+            File file = new File(fileName);
+            Scanner fileScanner = new Scanner(file);
+            StringBuilder bitLine = new StringBuilder();
+            while (fileScanner.hasNextLine()) {
+                String line = fileScanner.nextLine();
+                bitLine.insert(0, line);
+                if (bitLine.length() >= 32) {
+                    machineLanguageLine.add(bitLine.substring(0, 32));
+                    bitLine.setLength(0);
+                }
+
+
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+
+        for(int i = 0; i < machineLanguageLine.size(); i++){
+            System.out.println("Binary form " + machineLanguageLine.get(i));
+            System.out.println("Assembly Form " + bitToAssembly(machineLanguageLine.get(i)));
+            System.out.println("");
+        }
+    }
+
+    public main(String[] args) {
+        
+        Memory memory = new Memory()
+        Main main = new Main()
     }
 
     /**
@@ -138,7 +174,6 @@ public class Main {
             register[inst.rd] = register[inst.rs1] & register[inst.rs2];
             break;
         }
-        
         pc++;
     }
 
@@ -251,27 +286,6 @@ public class Main {
                 
         pc++;
     }
-private void iTypeEcall() {
-    if (register[10] == 1) {     // print_int
-        System.out.print(register[11]);
-    } else if (register[10] == 4) {     // print_string
-        System.out.print(memory.getString(register[11]));
-    } else if (register[10] == 9) {     // sbrk
-        // Not sure if we can do this?
-    } else if (register[10] == 10) {    // exit
-        pc = instructions.length; // Sets instructions counter to end of instructions, to instructions loop
-        return;                  // Exits 'iTypeStatus' function and returns to loop.
-    } else if (register[10] == 11) {    // print_character
-        System.out.println((char) register[11]);
-    } else if (register[10] == 17) {    // exit2
-        pc = instructions.length;
-        //System.out.println("Return code: " + register[11]); // Prints a1 (should be return?)
-        return;
-    } else {
-        System.out.println("ECALL " + register[10] + " not implemented");
-    }
-    pc++;
-}
 
     /**
      * Handles the S-type instructions:
@@ -279,17 +293,7 @@ private void iTypeEcall() {
      */
     private void sType(Instruction inst) {
         int addr = register[inst.rs1] + inst.imm;
-        /*switch(inst.funct3){
-            case 0b000: // SB
-                memory.storeByte(addr,(byte) register[inst.rs2]);
-                break;
-            case 0b001: // SH
-                memory.storeHalfWord(addr, (short) register[inst.rs2]);
-                break;
-            case 0b010: // SW
-                memory.storeWord(addr, register[inst.rs2]);
-                break;
-        }*/
+        
         
         if(inst.funct3 == 0b000){
             memory.storeByte(addr,(byte) register[inst.rs2]);
@@ -313,26 +317,7 @@ private void iTypeEcall() {
      */
     private void bType(Instruction inst) {
         int Imm = inst.imm >> 2; //We're counting in words instead of bytes
-        /*switch(inst.funct3){
-            case 0b000: // BEQ
-                pc += (register[inst.rs1] == register[inst.rs2]) ? Imm : 1;
-                break;
-            case 0b001: // BNE
-                pc += (register[inst.rs1] != register[inst.rs2]) ? Imm : 1;
-                break;
-            case 0b100: // BLT
-                pc += (register[inst.rs1] < register[inst.rs2]) ? Imm : 1;
-                break;
-            case 0b101: // BGE
-                pc += (register[inst.rs1] >= register[inst.rs2]) ? Imm : 1;
-                break;
-            case 0b110: //BLTU
-                pc += (Integer.toUnsignedLong(register[inst.rs1]) < Integer.toUnsignedLong(register[inst.rs2])) ? Imm : 1;
-                break;
-            case 0b111: //BLGEU
-                pc += (Integer.toUnsignedLong(register[inst.rs1]) >= Integer.toUnsignedLong(register[inst.rs2])) ? Imm : 1;
-                break;
-        }*/
+        
         if(inst.funct3 == 0b000){
             pc += (register[inst.rs1] == register[inst.rs2]) ? Imm : 1;
             break;
