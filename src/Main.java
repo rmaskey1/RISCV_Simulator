@@ -30,7 +30,7 @@ public class Main {
         try {
             System.out.println("\nWhat is the file path (Ex. addi_hazards.dat, r_type.dat, etc.)");
             Scanner scan = new Scanner(System.in);
-            String fileName = "tests\\dat_files\\"+scan.nextLine();
+            String fileName = "\\tests\\dat_files\\"+scan.nextLine();
             //String fileName = "tests/dat_files/ldst.dat";
             File file = new File(fileName);
             Scanner fileScanner = new Scanner(file);
@@ -67,6 +67,7 @@ public class Main {
         Main main = new Main(memory);
         Scanner scnr = new Scanner(System.in);
         ArrayList<Integer> breakpoints = new ArrayList<Integer>();
+        long totalExecTime = 0;
 
         System.out.println("If there is an associated dmem file, enter the filepath here: ");
         String input = "tests\\dat_files\\"+scnr.nextLine();
@@ -126,7 +127,10 @@ public class Main {
                     }
                     System.out.println(Arrays.toString(register));
                     System.out.println();
+                    long startTime = System.nanoTime();
                     main.runInstruction();
+                    long endTime = System.nanoTime();
+                    totalExecTime += ((endTime - startTime));
                     i++;
                 }
                 end = true;
@@ -141,13 +145,19 @@ public class Main {
                     }
                     System.out.println(Arrays.toString(register));
                     System.out.println();
+                    long startTime = System.nanoTime();
                     main.runInstruction();
+                    long endTime = System.nanoTime();
+                    totalExecTime += ((endTime - startTime));
                     i++;
                 }
                 end = true;
             }
             else if(input.equals("s")) {
+                long startTime = System.nanoTime();
                 main.runInstruction();
+                long endTime = System.nanoTime();
+                totalExecTime += ((endTime - startTime));
                 System.out.println(Arrays.toString(register));
                 System.out.println();
             }
@@ -172,6 +182,7 @@ public class Main {
                 System.out.println("The current value of the PC is: 0x00"+hexPC);
             }
             if(end) {
+                System.out.println("Total execution time: " + totalExecTime/1000000);
                 i = 0;
                 Arrays.fill(register, 0);
                 main.pc = 0;
