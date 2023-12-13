@@ -29,7 +29,7 @@ public class Main {
         //     System.out.println("What is the file path (Ex. tests\\dat_files\\addi_hazards.dat)");
         //     Scanner scan = new Scanner(System.in);
         //     String fileName = scan.nextLine();
-            String fileName = "tests\\dat_files\\ldst.dat";
+            String fileName = "RISCV_Simulator/tests/dat_files/i_type.dat";
             File file = new File(fileName);
             Scanner fileScanner = new Scanner(file);
             StringBuilder bitLine = new StringBuilder();
@@ -63,19 +63,35 @@ public class Main {
         Memory memory = new Memory();
         Main main = new Main(memory);
         Scanner scnr = new Scanner(System.in);
+        boolean breakpoint = false;
+        int breakpointAddr = -1;
+
         while(true) {
             System.out.println("Input a command: ");
             String input = scnr.nextLine();
             System.out.println();
-            if(input.equals("r")) {
-                main.pc = 0;
-                for(int i = 0; i < main.instructions.length; i++) {
-                    main.runInstruction();
+
+            if(input.substring(0,1).equals("b")) {
+                breakpointAddr = Integer.valueOf(input.substring(2));
+                breakpoint = true;
+            }
+
+            else if(input.equals("r")) {
+
+                if (breakpoint) {
+                    while (main.pc != breakpointAddr) {
+                        main.runInstruction();
+                    }
+                    breakpoint = false;
+                }
+                else {
+                    for(int i = 0; i < main.instructions.length; i++) {
+                        main.runInstruction();
+                    }
                 }
                 System.out.println(Arrays.toString(register));
-                Arrays.fill(register, 0);
-                main.pc = 0;
-                System.out.println();
+                /* Arrays.fill(register, 0);
+                main.pc = 0; */
             }
             else if(input.equals("s")) {
                 main.runInstruction();
@@ -97,6 +113,9 @@ public class Main {
                 System.out.println("The next instruction to be executed: " + inst.assemblyString);
                 System.out.println();
             }
+            
+
+
         }
     }
 
