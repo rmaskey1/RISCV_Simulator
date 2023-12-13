@@ -1,7 +1,10 @@
 package src;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,13 +29,12 @@ public class Main {
         this.memory = memory;                      // Initialize Memory object
         //this.instructions = instructions;                 // Initialize array of Instruction objects
         //register[2] = memory.getMemory().length - 1; // Initialize stack pointer to point at last address. 
-
         ArrayList<String> machineLanguageLine = new ArrayList<>();
         try {
-        //     System.out.println("What is the file path (Ex. tests\\dat_files\\addi_hazards.dat)");
-        //     Scanner scan = new Scanner(System.in);
-        //     String fileName = scan.nextLine();
-            String fileName = "tests\\dat_files\\ldst.dat";
+            System.out.println("\nWhat is the file path (Ex. addi_hazards.dat, r_type.dat, etc.)");
+            Scanner scan = new Scanner(System.in);
+            String fileName = "tests\\dat_files\\"+scan.nextLine();
+            //String fileName = "tests/dat_files/ldst.dat";
             File file = new File(fileName);
             Scanner fileScanner = new Scanner(file);
             StringBuilder bitLine = new StringBuilder();
@@ -66,14 +68,47 @@ public class Main {
         Memory memory = new Memory();
         Main main = new Main(memory);
         Scanner scnr = new Scanner(System.in);
+
+        System.out.println("If there is an associated dmem file, enter the filepath here: ");
+        String input = "tests\\dat_files\\"+scnr.nextLine();
+        System.out.println();
+        if(input.length()-1 > 0) {
+            try {
+                File dmemFile = new File(input);
+                Scanner dmemScanner = new Scanner(dmemFile);
+                StringBuilder bitLine = new StringBuilder();
+                int addr = 0x10010000;
+                while (dmemScanner.hasNextLine()) {
+                    String line = dmemScanner.nextLine();
+                    bitLine.insert(0, line);
+                    if (bitLine.length() >= 32) {
+                        String binaryString = bitLine.substring(0,32);
+                        int val = Integer.parseUnsignedInt(binaryString, 2);
+                        if (binaryString.charAt(0) == '1') {
+                            val = -((1 << binaryString.length()) - val - 1);
+                        }
+                        memory.storeWord(addr, val);
+                        addr += 4;
+                        bitLine.setLength(0);
+                    }
+                }
+            } catch (FileNotFoundException e) {
+                System.out.println("An error occurred.");
+                e.printStackTrace();
+            }
+        }
+        
+
         while(true) {
             System.out.println("Input a command: ");
-            String input = scnr.nextLine();
+            input = scnr.nextLine();
             System.out.println();
             if(input.equals("r")) {
                 main.pc = 0;
-                for(int i = 0; i < main.instructions.length; i++) {
+                int i = 0; 
+                while(main.pc < main.instructions.length && i < main.instructions.length) {
                     main.runInstruction();
+                    i++;
                 }
                 System.out.println(Arrays.toString(register));
                 Arrays.fill(register, 0);
@@ -100,22 +135,42 @@ public class Main {
                 System.out.println("The next instruction to be executed: " + inst.assemblyString);
                 System.out.println();
             }
-            if(input.equals("pc")) {
-                int pcVal = main.returnPcValue();
-                System.out.println(pcVal);
+
+            else if(input.equals("pc")) {
+                String hexPC = Integer.toHexString((main.pc*4) + 0x00400000);
+                System.out.println("The current value of the PC is: 0x00"+hexPC);
             }
+        }
+    }
+
+    public static void writeInstructionToFile(String str) {
+
+        try {
+            File f1 = new File("assembly.asm");
+            if(!f1.exists()) {
+                f1.createNewFile();
+            }
+  
+            FileWriter fileWritter = new FileWriter(f1.getName(),true);
+            BufferedWriter bw = new BufferedWriter(fileWritter);
+            bw.write(str + "\n");
+            bw.close();
+            System.out.println("Instruction Added");
+        } catch(IOException e){
+            e.printStackTrace();
 
         }
     }
 
     /**
-     * Executes one instruction given by the Instruction array 'instructions' at index given by the instructions counter 'pc'. 
-     * Uses the opcode field of the instruction to determine which type of instruction it is and call that method.
+     * Executes one instruction at a time, recurring executions handled in main method
      */
     
     public void runInstruction() {
         prev = pc;
         Instruction inst = instructions[pc];
+        System.out.println(inst.assemblyString);
+        writeInstructionToFile(inst.assemblyString);
 
         //U-type instructions
         if(inst.opcode == 0b0110111) { //LUI
@@ -124,27 +179,26 @@ public class Main {
             
         }
         if(inst.opcode == 0b0010111) { //AUIPC
-            register[inst.rd] = (pc << 2) + inst.imm; // Shift pc because we count in 4 byte words
+            register[inst.rd] = (pc << 2) + inst.imm;
             pc++;
             
         }
 
         // J-type instruction
         if(inst.opcode == 0b1101111) { //JAL
-            register[inst.rd] = (pc+1)<<2; // Store address of next instruction in bytes
-            pc += inst.imm>>2;
-            
+            if (inst.rd != 0)
+                register[inst.rd] = (pc + 1) << 2;
+            pc += inst.imm/4;
         }    
         // I-type instructions
         if(inst.opcode == 0b1100111) { // JALR
-            register[inst.rd] = (pc+1)<<2;
-            pc = ((register[inst.rs1] + inst.imm) & 0xFFFFFFFE)>>2;
-            
+            if (inst.rd != 0)
+                register[inst.rd] = (pc + 1) << 2;
+            pc = register[inst.rs1] + inst.imm/2;
         }
         //B-type instructions
         if(inst.opcode == 0b1100011) { // BEQ / BNE / BLT / BGE / BLTU / BGEU
             bType(inst);
-           
         }
         if(inst.opcode == 0b0000011) {// LB / LH / LW / LBU / LHU
             iTypeLoad(inst);
@@ -359,6 +413,7 @@ public class Main {
             memory.storeHalfWord(addr, (short) register[inst.rs2]);
         }
         else if(inst.funct3 == 0b010){
+            System.out.println(inst.rs2);
             memory.storeWord(addr, register[inst.rs2]);
         }
         
@@ -370,30 +425,42 @@ public class Main {
      * BEQ / BNE / BLT / BGE / BLTU / BGEU
      */
     private void bType(Instruction inst) {
-        int Imm = inst.imm >> 2; //We're counting in words instead of bytes
         
-        if(inst.funct3 == 0b000){
-            pc += (register[inst.rs1] == register[inst.rs2]) ? Imm : 1;
-            
+        if(inst.funct3 == 0b000){ //BEQ
+            if (register[inst.rs1] == register[inst.rs2])
+				pc += inst.imm/4;
+            else
+                pc += 1;
         }
-        else if(inst.funct3 == 0b001){
-            pc += (register[inst.rs1] != register[inst.rs2]) ? Imm : 1;
-            
+        else if(inst.funct3 == 0b001){ //BNE
+            if (register[inst.rs1] != register[inst.rs2])
+				pc += inst.imm/4;
+            else
+                pc += 1;
         }
-        else if(inst.funct3 == 0b100){
-            pc += (register[inst.rs1] < register[inst.rs2]) ? Imm : 1;
-            
+        else if(inst.funct3 == 0b100){ //BLT
+            if (register[inst.rs1] < register[inst.rs2])
+				pc += inst.imm/4;
+            else
+                pc += 1;
         }
-        else if(inst.funct3 == 0b101){
-            pc += (register[inst.rs1] >= register[inst.rs2]) ? Imm : 1;
-            
+        else if(inst.funct3 == 0b101){ //BGE
+            if (register[inst.rs1] >= register[inst.rs2])
+				pc += inst.imm/4;
+            else
+                pc += 1;
         }
-        else if(inst.funct3 == 0b110){
-            pc += (Integer.toUnsignedLong(register[inst.rs1]) < Integer.toUnsignedLong(register[inst.rs2])) ? Imm : 1;
-            
+        else if(inst.funct3 == 0b110){ //BLTU
+            if ((register[inst.rs1] < register[inst.rs2]) ^ (register[inst.rs1] < 0) ^ (register[inst.rs2] < 0))
+				pc += inst.imm/4;
+            else
+                pc += 1;
         }
-        else if(inst.funct3 == 0b111){
-            pc += (Integer.toUnsignedLong(register[inst.rs1]) >= Integer.toUnsignedLong(register[inst.rs2])) ? Imm : 1;
+        else if(inst.funct3 == 0b111){ //BGEU
+            if (!(register[inst.rs1] < register[inst.rs2]) ^ (register[inst.rs1] < 0) ^ (register[inst.rs2] < 0))
+				pc += inst.imm/4;
+            else
+                pc += 1;
         }
     }
 
