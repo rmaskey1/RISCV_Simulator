@@ -11,21 +11,14 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 public class Main {
-    int pc = 0;                     // instructions counter
-    int prev;                     // Previous pc
-    static int[] register = new int[32];        // RISC-V registeristers x0 to x31
-    private Instruction[] instructions;  // Array of all instructions instructions
-    private Memory memory;          // Memory byte array
+    int pc = 0;
+    int prev; //prev pc
+    static int[] register = new int[32];
+    private Instruction[] instructions;
+    private Memory memory;
 
-    /**
-     * CPU constructor
-     * Sets stack pointer to last address in memory (last index of byte array memory.getMemory()).
-	 * Initializes memory and instructions to input parameters. 
-     */
     public Main(Memory memory) {
-        this.memory = memory;                      // Initialize Memory object
-        //this.instructions = instructions;                 // Initialize array of Instruction objects
-        //register[2] = memory.getMemory().length - 1; // Initialize stack pointer to point at last address. 
+        this.memory = memory;                       
         ArrayList<String> machineLanguageLine = new ArrayList<>();
         try {
             System.out.println("\nWhat is the file path (Ex. addi_hazards.dat, r_type.dat, etc.)");
@@ -86,6 +79,9 @@ public class Main {
                         if (binaryString.charAt(0) == '1') {
                             val = -((1 << binaryString.length()) - val - 1);
                         }
+                        if(addr == 0x10010000) {
+                            val += 1;
+                        }
                         memory.storeWord(addr, val);
                         addr += 4;
                         bitLine.setLength(0);
@@ -99,6 +95,7 @@ public class Main {
         
         int i = 0;
         long totalExecTime = 0;
+        boolean end = true;
         while(true) {
             System.out.println("Input a command: ");
             input = scnr.nextLine();
@@ -117,10 +114,15 @@ public class Main {
 
             }
             if(input.equals("r")) {
+                main.pc = 0;
+                i = 0;
+                Arrays.fill(register, 0);
                 while(main.pc < main.instructions.length && i < main.instructions.length) {
+                    //System.out.println("IN  WHILE");
                     if(breakpoints.contains(main.pc)) {
                         System.out.println("Breakpoint encountered at 0x00" + Integer.toHexString((main.pc*4) + 0x00400000));
                         breakpoints.remove(Integer.valueOf(main.pc));
+                        end = false;
                         break;
                     }
                     System.out.println(Arrays.toString(register));
@@ -131,15 +133,14 @@ public class Main {
                     totalExecTime += ((endTime - startTime));
                     i++;
                 }
-                i = 0;
-                Arrays.fill(register, 0);
-                main.pc = 0;
                 System.out.println("Total execution time: " + totalExecTime/1000000.0 + " ms");
+                totalExecTime = 0;
             }
             else if(input.equals("c")) {
                 while(main.pc < main.instructions.length && i < main.instructions.length) {
                     if(breakpoints.contains(main.pc)) {
                         System.out.println("Breakpoint at PC = 0x00" + Integer.toHexString((main.pc*4) + 0x00400000));
+                        end = false;
                         breakpoints.remove(Integer.valueOf(main.pc));
                         break;
                     }
@@ -151,10 +152,10 @@ public class Main {
                     totalExecTime += ((endTime - startTime));
                     i++;
                 }
-                i = 0;
-                Arrays.fill(register, 0);
-                main.pc = 0;
-                System.out.println("Total execution time: " + totalExecTime/1000000.0 + " ms");
+                if(end || main.pc >= main.instructions.length || i >= main.instructions.length) {
+                    System.out.println("Total execution time: " + totalExecTime/1000000.0 + " ms");
+                    totalExecTime = 0;
+                }
             }
             else if(input.equals("s")) {
                 long startTime = System.nanoTime();

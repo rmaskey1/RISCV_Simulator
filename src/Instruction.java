@@ -8,7 +8,6 @@ public class Instruction {
 
    
     public Instruction(int instruction) {
-        // Used in nearly all 
         this.instruction = instruction;
         this.opcode = instruction & 0x7F;           // First 7 bits
         this.rd = (instruction >> 7) & 0x1F;        // bits 11 to 7
