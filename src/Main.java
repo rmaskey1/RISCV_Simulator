@@ -29,7 +29,7 @@ public class Main {
         //     System.out.println("What is the file path (Ex. tests\\dat_files\\addi_hazards.dat)");
         //     Scanner scan = new Scanner(System.in);
         //     String fileName = scan.nextLine();
-            String fileName = "tests\\dat_files\\i_type.dat";
+            String fileName = "tests\\dat_files\\ldst.dat";
             File file = new File(fileName);
             Scanner fileScanner = new Scanner(file);
             StringBuilder bitLine = new StringBuilder();
@@ -64,8 +64,9 @@ public class Main {
         Main main = new Main(memory);
         Scanner scnr = new Scanner(System.in);
         while(true) {
-            System.out.println("Input a command:");
+            System.out.println("Input a command: ");
             String input = scnr.nextLine();
+            System.out.println();
             if(input.equals("r")) {
                 main.pc = 0;
                 for(int i = 0; i < main.instructions.length; i++) {
@@ -74,40 +75,29 @@ public class Main {
                 System.out.println(Arrays.toString(register));
                 Arrays.fill(register, 0);
                 main.pc = 0;
+                System.out.println();
             }
-            if(input.equals("s")) {
+            else if(input.equals("s")) {
                 main.runInstruction();
                 System.out.println(Arrays.toString(register));
+                System.out.println();
+            }
+            else if(input.substring(0,1).equals("x")) {
+                System.out.println("The contents of register x"+input.substring(1,input.length())+" is: " + register[Integer.parseInt(input.substring(1,input.length()))]);
+                System.out.println();
+            }
+            else if(input.substring(0,2).equals("0x")) {
+                if(main.memory.getMemoryMap().get(Integer.parseInt(input.substring(2), 16)) != null) {
+                    System.out.println("The contents of register address "+input+" is: " + main.memory.getMemoryMap().get(Integer.parseInt(input.substring(2), 16)));
+                    System.out.println();
+                }
+            }
+            else if(input.equals("insn")) {
+                Instruction inst = main.instructions[main.pc];
+                System.out.println("The next instruction to be executed: " + inst.assemblyString);
+                System.out.println();
             }
         }
-
-
-        // main.runInstruction();
-        // System.out.println(Arrays.toString(register));
-        // main.runInstruction();
-        // System.out.println(Arrays.toString(register));
-        // main.runInstruction();
-        // System.out.println(Arrays.toString(register));
-        // main.runInstruction();
-        // System.out.println(Arrays.toString(register));
-        // main.runInstruction();
-        // System.out.println(Arrays.toString(register));
-        // main.runInstruction();
-        // System.out.println(Arrays.toString(register));
-        // main.runInstruction();
-        // System.out.println(Arrays.toString(register));
-        // main.runInstruction();
-        // System.out.println(Arrays.toString(register));
-        // main.runInstruction();
-        // System.out.println(Arrays.toString(register));
-        // main.runInstruction();
-        // System.out.println(Arrays.toString(register));
-        // main.runInstruction();
-        // System.out.println(Arrays.toString(register));
-        // main.runInstruction();
-        // System.out.println(Arrays.toString(register));
-        // main.runInstruction();
-        // System.out.println(Arrays.toString(register));
     }
 
     /**
@@ -148,15 +138,13 @@ public class Main {
             bType(inst);
            
         }
-        // if(inst.opcode == 0b0000011) {// LB / LH / LW / LBU / LHU
-        //     iTypeLoad(inst);
-        //     break;
-        // }
-        // //S-type instructions
-        // if(inst.opcode == 0b0100011) {//SB / SH / SW
-        //     sType(inst);
-        //     break;
-        // }
+        if(inst.opcode == 0b0000011) {// LB / LH / LW / LBU / LHU
+            iTypeLoad(inst);
+        }
+        //S-type instructions
+        if(inst.opcode == 0b0100011) {//SB / SH / SW
+            sType(inst);
+        }
         if(inst.opcode == 0b0010011) {// ADDI / SLTI / SLTIU / XORI / ORI / ANDI / SLLI / SRLI / SRAI
             iTypeInteger(inst);
             
@@ -238,34 +226,34 @@ public class Main {
      * Handles execution of i-Type load instructions:
      * LB / LH / LW / LBU / LHU
      */
-    // private void iTypeLoad(Instruction inst) {
-    //     int addr = register[inst.rs1] + inst.imm; // Byte address
+    private void iTypeLoad(Instruction inst) {
+        int addr = register[inst.rs1] + inst.imm; // Byte address
 
-    //     if(inst.funct3 == 0b000) {// LB
-    //         register[inst.rd] = memory.getByte(addr);
+        if(inst.funct3 == 0b000) {// LB
+            register[inst.rd] = memory.getByte(addr);
         
-    //     }
-    //     else if(inst.funct3 == 0b001) {// LH
-    //         register[inst.rd] = memory.getHalfWord(addr);
+        }
+        else if(inst.funct3 == 0b001) {// LH
+            register[inst.rd] = memory.getHalfWord(addr);
            
-    //     }
-    //     else if(inst.funct3 == 0b010) {// LW
-    //         register[inst.rd] = memory.getWord(addr);
+        }
+        else if(inst.funct3 == 0b010) {// LW
+            register[inst.rd] = memory.getWord(addr);
          
-    //     }
-    //     else if(inst.funct3 == 0b100) {// LBU
-    //         register[inst.rd] = memory.getByte(addr) & 0xFF; //Remove sign bits
+        }
+        else if(inst.funct3 == 0b100) {// LBU
+            register[inst.rd] = memory.getByte(addr) & 0xFF; //Remove sign bits
             
-    //     }
-    //     else if(inst.funct3 == 0b101) {// LHU
-    //         register[inst.rd] = memory.getHalfWord(addr) & 0xFFFF;
+        }
+        else if(inst.funct3 == 0b101) {// LHU
+            register[inst.rd] = memory.getHalfWord(addr) & 0xFFFF;
             
-    //     }
-    //     else {
+        }
+        else {
           
-    //     }
-    //     pc++;
-    // }
+        }
+        pc++;
+    }
 
     /**
      * Handles execution of I-type integer instructions:
@@ -352,25 +340,22 @@ public class Main {
      * Handles the S-type instructions:
      * SB / SH / SW
      */
-    // private void sType(Instruction inst) {
-    //     int addr = register[inst.rs1] + inst.imm;
+    private void sType(Instruction inst) {
+        int addr = register[inst.rs1] + inst.imm;
+        System.out.println(addr);
         
+        if(inst.funct3 == 0b000){
+            memory.storeByte(addr,(byte) register[inst.rs2]);
+        }
+        else if(inst.funct3 == 0b001){
+            memory.storeHalfWord(addr, (short) register[inst.rs2]);
+        }
+        else if(inst.funct3 == 0b010){
+            memory.storeWord(addr, register[inst.rs2]);
+        }
         
-    //     if(inst.funct3 == 0b000){
-    //         memory.storeByte(addr,(byte) register[inst.rs2]);
-    //         break;
-    //     }
-    //     else if(inst.funct3 == 0b001){
-    //         memory.storeHalfWord(addr, (short) register[inst.rs2]);
-    //         break;
-    //     }
-    //     else if(inst.funct3 == 0b010){
-    //         memory.storeWord(addr, register[inst.rs2]);
-    //         break;
-    //     }
-        
-    //     pc++;
-    // }
+        pc++;
+    }
 
     /**
      * Handles the B-type instructions:

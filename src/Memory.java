@@ -52,4 +52,8 @@ public class Memory {
         }
         return sb.toString();
     }
+
+    public HashMap<Integer, Byte> getMemoryMap() {
+        return memory;
+    }
 }
