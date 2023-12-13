@@ -97,8 +97,8 @@ public class Main {
             }
         }
         
-        boolean end = true;
         int i = 0;
+        long totalExecTime = 0;
         while(true) {
             System.out.println("Input a command: ");
             input = scnr.nextLine();
@@ -121,33 +121,47 @@ public class Main {
                     if(breakpoints.contains(main.pc)) {
                         System.out.println("Breakpoint encountered at 0x00" + Integer.toHexString((main.pc*4) + 0x00400000));
                         breakpoints.remove(Integer.valueOf(main.pc));
-                        end = false;
                         break;
                     }
                     System.out.println(Arrays.toString(register));
                     System.out.println();
+                    long startTime = System.nanoTime();
                     main.runInstruction();
+                    long endTime = System.nanoTime();
+                    totalExecTime += ((endTime - startTime));
                     i++;
                 }
-                end = true;
+                i = 0;
+                Arrays.fill(register, 0);
+                main.pc = 0;
+                System.out.println("Total execution time: " + totalExecTime/1000000.0 + " ms");
             }
             else if(input.equals("c")) {
                 while(main.pc < main.instructions.length && i < main.instructions.length) {
                     if(breakpoints.contains(main.pc)) {
                         System.out.println("Breakpoint at PC = 0x00" + Integer.toHexString((main.pc*4) + 0x00400000));
                         breakpoints.remove(Integer.valueOf(main.pc));
-                        end = false;
                         break;
                     }
                     System.out.println(Arrays.toString(register));
                     System.out.println();
+                    long startTime = System.nanoTime();
                     main.runInstruction();
+                    long endTime = System.nanoTime();
+                    totalExecTime += ((endTime - startTime));
                     i++;
                 }
-                end = true;
+                i = 0;
+                Arrays.fill(register, 0);
+                main.pc = 0;
+                System.out.println("Total execution time: " + totalExecTime/1000000.0 + " ms");
             }
             else if(input.equals("s")) {
+                long startTime = System.nanoTime();
                 main.runInstruction();
+                long endTime = System.nanoTime();
+                totalExecTime += ((endTime - startTime));
+                i++;
                 System.out.println(Arrays.toString(register));
                 System.out.println();
             }
@@ -170,11 +184,6 @@ public class Main {
             else if(input.equals("pc")) {
                 String hexPC = Integer.toHexString((main.pc*4) + 0x00400000);
                 System.out.println("The current value of the PC is: 0x00"+hexPC);
-            }
-            if(end) {
-                i = 0;
-                Arrays.fill(register, 0);
-                main.pc = 0;
             }
         }
     }
@@ -233,22 +242,22 @@ public class Main {
             pc = register[inst.rs1] + inst.imm/2;
         }
         //B-type instructions
-        if(inst.opcode == 0b1100011) { // BEQ / BNE / BLT / BGE / BLTU / BGEU
+        if(inst.opcode == 0b1100011) { // BEQ, BNE, BLT, BGE, BLTU, BGEU
             bType(inst);
         }
-        if(inst.opcode == 0b0000011) {// LB / LH / LW / LBU / LHU
+        if(inst.opcode == 0b0000011) {// LB, LH, LW, LBU, LHU
             iTypeLoad(inst);
         }
         //S-type instructions
-        if(inst.opcode == 0b0100011) {//SB / SH / SW
+        if(inst.opcode == 0b0100011) {// SB, SH, SW
             sType(inst);
         }
-        if(inst.opcode == 0b0010011) {// ADDI / SLTI / SLTIU / XORI / ORI / ANDI / SLLI / SRLI / SRAI
+        if(inst.opcode == 0b0010011) {// ADDI, SLTI, SLTIU, XORI, ORI, ANDI, SLLI, SRLI, SRAI
             iTypeInteger(inst);
             
         }
         // R-type instructions
-        if(inst.opcode == 0b0110011) {// ADD / SUB / SLL / SLT / SLTU / XOR / SRL / SRA / OR / AND
+        if(inst.opcode == 0b0110011) {// ADD, SUB, SLL, SLT, SLTU, XOR, SRL, SRA, OR, AND
             rType(inst);
         }
         if(inst.opcode == 0b00000000){ // NOP
@@ -259,14 +268,14 @@ public class Main {
 
     private void NOP() {
         System.out.println("End of program");
+        pc = 0;
     }
 
     /**
-     * Handles execution of r-Type instructions:
-     * ADD / SUB / SLL / SLT / SLTU / XOR / SRL / SRA / OR / AND
+     * R-Type instructions:
      */
     private void rType(Instruction inst) {
-        if(inst.funct3 == 0b000) {// ADD / SUB
+        if(inst.funct3 == 0b000) {
             if(inst.funct7 == 0b0000000) { // ADD
                 register[inst.rd] = register[inst.rs1] + register[inst.rs2];       
             }
@@ -298,7 +307,7 @@ public class Main {
             register[inst.rd] = register[inst.rs1] ^ register[inst.rs2];
   
         }
-        if(inst.funct3 == 0b101) {// SRL / SRA
+        if(inst.funct3 == 0b101) {
             if(inst.funct7 == 0b0000000) {// SRL
                 register[inst.rd] = register[inst.rs1] >>> register[inst.rs2];
                
@@ -321,11 +330,10 @@ public class Main {
     }
 
     /**
-     * Handles execution of i-Type load instructions:
-     * LB / LH / LW / LBU / LHU
+     * I-Type load instructions:
      */
     private void iTypeLoad(Instruction inst) {
-        int addr = register[inst.rs1] + inst.imm; // Byte address
+        int addr = register[inst.rs1] + inst.imm; // Convert to byte address
 
         if(inst.funct3 == 0b000) {// LB
             register[inst.rd] = memory.getByte(addr);
@@ -340,7 +348,7 @@ public class Main {
          
         }
         else if(inst.funct3 == 0b100) {// LBU
-            register[inst.rd] = memory.getByte(addr) & 0xFF; //Remove sign bits
+            register[inst.rd] = memory.getByte(addr) & 0xFF;
             
         }
         else if(inst.funct3 == 0b101) {// LHU
@@ -354,20 +362,19 @@ public class Main {
     }
 
     /**
-     * Handles execution of I-type integer instructions:
-     * ADDI / SLTI / SLTIU / XORI / ORI / ANDI / SLLI / SRLI / SRAI
+     * I-type instructions:
      */
     private void iTypeInteger(Instruction inst) {
         if(inst.funct3 == 0b000) {// ADDI
             register[inst.rd] = register[inst.rs1] + inst.imm;
             
         }
+
         if(inst.funct3 == 0b010) {// SLTI
             if(register[inst.rs1] < inst.imm)
                 register[inst.rd] = 1;
             else
                 register[inst.rd] = 0;
-            
         } 
                 
         if(inst.funct3 == 0b011){ // SLTIU
@@ -375,33 +382,27 @@ public class Main {
                 register[inst.rd] = 1;
             else
                 register[inst.rd] = 0;
-
         } 
                 
         if(inst.funct3 == 0b100){// XORI
             if ((register[inst.rs1] ^ inst.imm) != 0)
                 register[inst.rd] = register[inst.rs1] ^ inst.imm;
             else
-                register[inst.rd] = 0;
-            
+                register[inst.rd] = 0;  
         } 
     
-
         if(inst.funct3 == 0b110){ // ORI
             if ((register[inst.rs1] | inst.imm) != 0)
             register[inst.rd] = register[inst.rs1] | inst.imm;
             else
                 register[inst.rd] = 0;
-           
         }
     
-   
         if(inst.funct3 == 0b111){ // ANDI
             if ((register[inst.rs1] & inst.imm) != 0)
                 register[inst.rd] = register[inst.rs1] & inst.imm;
             else
                 register[inst.rd] = 0;
-            
         }
                 
 
@@ -410,46 +411,35 @@ public class Main {
                 register[inst.rd] = register[inst.rs1] << (inst.imm & 0x1F);
             else
                 register[inst.rd] = 0;
-            
         }
     
 
-        if(inst.funct3 == 0b101){ // SRLI / SRAI
-            int ShiftAmt = inst.imm & 0x1F; // The amount of shifting done by SRLI or SRAI
-            System.out.println(ShiftAmt);
-            //int f7 = inst.imm & 0b1111111;
-            //System.out.println(Integer.toBinaryString(inst.funct7));
+        if(inst.funct3 == 0b101){
             if(inst.funct7 == 0b0000000) {// SRLI
-                System.out.println(ShiftAmt);
-                register[inst.rd] = register[inst.rs1] >>> (inst.imm & 0x1F);
-                
+                register[inst.rd] = register[inst.rs1] >>> (inst.imm & 0x1F); //shamt 
             }
             if(inst.funct7 == 0b0100000) { // SRAI
-                register[inst.rd] = register[inst.rs1] >> (inst.imm & 0x1F);
-                
-            }
-            
-        }
-                
+                register[inst.rd] = register[inst.rs1] >> (inst.imm & 0x1F); //shamt 
+            }  
+        }        
         pc++;
     }
 
     /**
-     * Handles the S-type instructions:
-     * SB / SH / SW
+     * S-type instructions:
      */
     private void sType(Instruction inst) {
         int addr = register[inst.rs1] + inst.imm;
         System.out.println(addr);
         
-        if(inst.funct3 == 0b000){
+        if(inst.funct3 == 0b000){ // SB
             memory.storeByte(addr,(byte) register[inst.rs2]);
         }
-        else if(inst.funct3 == 0b001){
+        else if(inst.funct3 == 0b001){ //SH
             memory.storeHalfWord(addr, (short) register[inst.rs2]);
         }
         else if(inst.funct3 == 0b010){
-            System.out.println(inst.rs2);
+            System.out.println(inst.rs2); // SW
             memory.storeWord(addr, register[inst.rs2]);
         }
         
@@ -457,8 +447,7 @@ public class Main {
     }
 
     /**
-     * Handles the B-type instructions:
-     * BEQ / BNE / BLT / BGE / BLTU / BGEU
+     * B-type instructions:
      */
     private void bType(Instruction inst) {
         

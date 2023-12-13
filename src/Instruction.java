@@ -16,49 +16,54 @@ public class Instruction {
         this.rs1 = (instruction >> 15) & 0x1F;      // bits 19 to 15
         this.rs2 = (instruction >> 20) & 0x1F;      // bits 24 to 20
 
-        // Immediate is different for all types
-
-        if (opcode == 0b1101111)  {// J-Type
+        // J-Type
+        if (opcode == 0b1101111)  {
             this.imm = getImmJ(instruction);
                
         }
-        else if (opcode == 0b1100111 || opcode == 0b0000011 || opcode == 0b0010011 ) { // I-Type
-            this.imm = (instruction >> 20); // bits 31 to 20
+
+        // I-Type
+        else if (opcode == 0b1100111 || opcode == 0b0000011 || opcode == 0b0010011 ) { 
+            this.imm = (instruction >> 20);
             this.funct7 = (instruction >> 25) & 0x7F;
-                // No break since I-type also uses funct7 in shift instructions 
         }
-        else if (opcode == 0b0110011) { // R-Type
-            this.funct7 = (instruction >> 25) & 0x7F;   // bits 31 to 25
+
+        // R-Type
+        else if (opcode == 0b0110011) { 
+            this.funct7 = (instruction >> 25) & 0x7F;
             
         }
-        else if (opcode == 0b0100011) { // S-Type
+
+        // S-Type
+        else if (opcode == 0b0100011) {
             imm = (((instruction >> 20) & 0xFFFFFFE0) |
-                ((instruction >>> 7) & 0x0000001F));    // Returns bits 31 to 25 and 11 to 7
+                ((instruction >>> 7) & 0x0000001F));
                  
         }
-        else if (opcode == 0b1100011) { // B-Type
+
+        // B-Type
+        else if (opcode == 0b1100011) {
             this.imm = getImmB(instruction);
                  
         }
-        else if (opcode == 0b0110111 || opcode == 0b0010111) { // U-Type
+
+        // U-Type
+        else if (opcode == 0b0110111 || opcode == 0b0010111) { 
             this.imm = instruction & 0xFFFFF000;
                 
         }
 
-        this.assemblyString = bitToAssembly();   // The instruction show in assembly code
+        this.assemblyString = bitToAssembly(); // String version of assembly code
     }
 
 
-    
+    //extract imm for B type
     private int getImmB (int instruction) {
         return ((((((instruction >>> 7) & 0x0000001F)|(instruction >> 20) & 0xFFFFFFE0)) & 0xFFFFF7FE)
                 | (((((instruction >> 20) & 0xFFFFFFE0) | ((instruction >>> 7) & 0x0000001F)) & 0x00000001) << 11));
     }
 
-    /**
-     * Returns the J-type immediate
-     * Decoded like this: imm[20|10:1|11|19:12]
-     */
+    //extract imm for J type
     private int getImmJ(int instruction) {
         int b12to19 = (instruction>>12) & 0xFF; // Bits 12 to 19 of immediate (12 to 19 of instruction)
         int b11 = (instruction>>20) & 0x1;      // Bit 11 of immediate (20th bit of instruction)
@@ -68,18 +73,17 @@ public class Instruction {
     }
 
     /**
-     * Converts the instruction to an assembly string.
-     * Returns the string
+     * Converts the instruction to an assembly string
      */
     public String bitToAssembly() {
         String instr = "", arg1 = "", arg2 = "", arg3 = "";
 
         // R-type instructions
-        if (opcode == (0b0110011)) { // ADD / SUB / SLL / SLT / SLTU / XOR / SRL / SRA / OR / AND
+        if (opcode == (0b0110011)) {
             arg1 = String.format("x%d", rd);
             arg2 = String.format("x%d", rs1);
             arg3 = String.format("x%d", rs2);
-            if (funct3 == 0b000) { // add or sub
+            if (funct3 == 0b000) {
                 if(funct7 == 0b0000000){ // ADD
                     instr = "add";
                     
@@ -103,7 +107,7 @@ public class Instruction {
             else if (funct3 == 0b100) { //XOR
                 instr = "xor";
             }  
-            else if (funct3 == 0b101) { // SRL or SRA  
+            else if (funct3 == 0b101) { 
                 if(funct7 == 0b0000000 ){ // SRL
                     instr = "srl";
                     
@@ -137,7 +141,7 @@ public class Instruction {
             instr = "jalr";
             
         }
-        else if (opcode == 0b0000011) { // LB / LH / LW / LBU / LHU
+        else if (opcode == 0b0000011) {
             arg1 = String.format("x%d", rd);
             arg2 = String.format("%d(x%d)", imm, rs1);
             if (funct3 == 0b000){      // LB
@@ -166,7 +170,7 @@ public class Instruction {
         }
 
 
-        else if (opcode == 0b0010011) { // ADDI / SLTI / SLTIU / XORI / ORI / ANDI / SLLI / SRLI / SRAI
+        else if (opcode == 0b0010011) {
             arg1 = String.format("x%d", rd);
             arg2 = String.format("x%d", rs1);
             arg3 = String.format("%d", (imm));
@@ -203,8 +207,7 @@ public class Instruction {
                     
                 }
                     
-                else if (funct3 == 0b101){ // SRLI / SRAI
-                    //funct7 = imm & 0b1111111;
+                else if (funct3 == 0b101){
                     if (funct7 == 0b0000000){ // SRLI
                         instr = "srli";
                         arg3 = String.format("%d", (imm & 0x1F));
@@ -218,20 +221,20 @@ public class Instruction {
             
         }
         //S-type instructions
-        else if (opcode == 0b0100011) { //SB / SH / SW
+        else if (opcode == 0b0100011) {
             arg1 = String.format("x%d", rs2);
             arg2 = String.format("%d(x%d)", imm, rs1);
             
-            if(funct3 == 0b000){
+            if(funct3 == 0b000){ //SB
                 instr = "sb";
             
             }
-            else if(funct3 == 0b001){
+            else if(funct3 == 0b001){ //SH
                 instr = "sh";
                 
                     
             }
-            else if(funct3 == 0b010){
+            else if(funct3 == 0b010){ //SW
                 instr = "sw";
                 
             }
@@ -240,33 +243,33 @@ public class Instruction {
             
         }
         //B-type instructions
-        else if (opcode == 0b1100011) { // BEQ / BNE / BLT / BGE / BLTU / BGEU
+        else if (opcode == 0b1100011) {
             arg1 = String.format("x%d", rs1);
             arg2 = String.format("x%d", rs2);
             arg3 = String.format("%d", imm);
             
             
-            if(funct3 == 0b000){ //beq
+            if(funct3 == 0b000){ //BEQ
                 instr = "beq";
                 
             }
-            else if(funct3 == 0b001){ //bne
+            else if(funct3 == 0b001){ //BNE
                 instr = "bne";
                 
             }
-            else if(funct3 == 0b100){ //blt
+            else if(funct3 == 0b100){ //BLT
                 instr = "blt";
                 
             }
-            else if(funct3 == 0b101){ //bge
+            else if(funct3 == 0b101){ //BGE
                 instr = "bge";
                 
             }
-            else if(funct3 == 0b110){ //bltu
+            else if(funct3 == 0b110){ //BLTU
                 instr = "bltu";
             
             }
-            else if(funct3 == 0b111){ //blgeu
+            else if(funct3 == 0b111){ //BLGEU
                 instr = "blgeu";
             
             }
