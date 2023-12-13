@@ -26,10 +26,10 @@ public class Main {
 
         ArrayList<String> machineLanguageLine = new ArrayList<>();
         try {
-        //     System.out.println("What is the file path (Ex. tests\\dat_files\\addi_hazards.dat)");
-        //     Scanner scan = new Scanner(System.in);
-        //     String fileName = scan.nextLine();
-            String fileName = "tests\\dat_files\\ldst.dat";
+            System.out.println("\nWhat is the file path (Ex. addi_hazards.dat, r_type.dat, etc.)");
+            Scanner scan = new Scanner(System.in);
+            String fileName = "tests\\dat_files\\"+scan.nextLine();
+            //String fileName = "tests/dat_files/ldst.dat";
             File file = new File(fileName);
             Scanner fileScanner = new Scanner(file);
             StringBuilder bitLine = new StringBuilder();
@@ -63,9 +63,40 @@ public class Main {
         Memory memory = new Memory();
         Main main = new Main(memory);
         Scanner scnr = new Scanner(System.in);
+
+        System.out.println("If there is an associated dmem file, enter the filepath here: ");
+        String input = "tests\\dat_files\\"+scnr.nextLine();
+        System.out.println();
+        if(!input.equals("")) {
+            try {
+                File dmemFile = new File(input);
+                Scanner dmemScanner = new Scanner(dmemFile);
+                StringBuilder bitLine = new StringBuilder();
+                int addr = 0x10010000;
+                while (dmemScanner.hasNextLine()) {
+                    String line = dmemScanner.nextLine();
+                    bitLine.insert(0, line);
+                    if (bitLine.length() >= 32) {
+                        String binaryString = bitLine.substring(0,32);
+                        int val = Integer.parseUnsignedInt(binaryString, 2);
+                        if (binaryString.charAt(0) == '1') {
+                            val = -((1 << binaryString.length()) - val - 1);
+                        }
+                        memory.storeWord(addr, val);
+                        addr += 4;
+                        bitLine.setLength(0);
+                    }
+                }
+            } catch (FileNotFoundException e) {
+                System.out.println("An error occurred.");
+                e.printStackTrace();
+            }
+        }
+        
+
         while(true) {
             System.out.println("Input a command: ");
-            String input = scnr.nextLine();
+            input = scnr.nextLine();
             System.out.println();
             if(input.equals("r")) {
                 main.pc = 0;
@@ -101,8 +132,7 @@ public class Main {
     }
 
     /**
-     * Executes one instruction given by the Instruction array 'instructions' at index given by the instructions counter 'pc'. 
-     * Uses the opcode field of the instruction to determine which type of instruction it is and call that method.
+     * Executes one instruction at a time, recurring executions handled in main method
      */
     
     public void runInstruction() {
@@ -116,7 +146,7 @@ public class Main {
             
         }
         if(inst.opcode == 0b0010111) { //AUIPC
-            register[inst.rd] = (pc << 2) + inst.imm; // Shift pc because we count in 4 byte words
+            register[inst.rd] = (pc << 2) + inst.imm;
             pc++;
             
         }

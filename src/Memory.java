@@ -41,6 +41,7 @@ public class Memory {
     public void storeWord(int address, int value) {
         for (int i = 0; i < 4; i++) {
             storeByte(address + i, (byte) ((value >> (8 * i)) & 0xFF));
+            
         }
     }
 
