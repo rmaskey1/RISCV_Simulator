@@ -19,17 +19,17 @@ public class Main {
      * Sets stack pointer to last address in memory (last index of byte array memory.getMemory()).
 	 * Initializes memory and instructions to input parameters. 
      */
-    public Main(Memory memory, Instruction[] instructions) {
+    public Main(Memory memory) {
         this.memory = memory;                      // Initialize Memory object
-        this.instructions = instructions;                 // Initialize array of Instruction objects
-        register[2] = memory.getMemory().length - 1; // Initialize stack pointer to point at last address. 
+        //this.instructions = instructions;                 // Initialize array of Instruction objects
+        //register[2] = memory.getMemory().length - 1; // Initialize stack pointer to point at last address. 
 
         ArrayList<String> machineLanguageLine = new ArrayList<>();
         try {
         //     System.out.println("What is the file path (Ex. tests\\dat_files\\addi_hazards.dat)");
         //     Scanner scan = new Scanner(System.in);
         //     String fileName = scan.nextLine();
-            String fileName = "tests\\dat_files\\r_type.dat";
+            String fileName = "tests\\dat_files\\i_type.dat";
             File file = new File(fileName);
             Scanner fileScanner = new Scanner(file);
             StringBuilder bitLine = new StringBuilder();
@@ -38,7 +38,6 @@ public class Main {
                 bitLine.insert(0, line);
                 if (bitLine.length() >= 32) {
                     machineLanguageLine.add(bitLine.substring(0, 32));
-                    
                     bitLine.setLength(0);
                 }
             }
@@ -46,6 +45,8 @@ public class Main {
             System.out.println("An error occurred.");
             e.printStackTrace();
         }
+
+        this.instructions = new Instruction[machineLanguageLine.size()];
 
         for(int i = 0; i < machineLanguageLine.size(); i++){
             System.out.println("Binary form: " + machineLanguageLine.get(i));
@@ -58,11 +59,55 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        Instruction[] instructions = new Instruction[4096];
-        Memory memory = new Memory(100000);
-        Main main = new Main(memory, instructions);
-        main.runInstruction();
-        System.out.println(Arrays.toString(register));
+        //Instruction[] instructions = new Instruction[4096];
+        Memory memory = new Memory();
+        Main main = new Main(memory);
+        Scanner scnr = new Scanner(System.in);
+        while(true) {
+            System.out.println("Input a command:");
+            String input = scnr.nextLine();
+            if(input.equals("r")) {
+                main.pc = 0;
+                for(int i = 0; i < main.instructions.length; i++) {
+                    main.runInstruction();
+                }
+                System.out.println(Arrays.toString(register));
+                Arrays.fill(register, 0);
+                main.pc = 0;
+            }
+            if(input.equals("s")) {
+                main.runInstruction();
+                System.out.println(Arrays.toString(register));
+            }
+        }
+
+
+        // main.runInstruction();
+        // System.out.println(Arrays.toString(register));
+        // main.runInstruction();
+        // System.out.println(Arrays.toString(register));
+        // main.runInstruction();
+        // System.out.println(Arrays.toString(register));
+        // main.runInstruction();
+        // System.out.println(Arrays.toString(register));
+        // main.runInstruction();
+        // System.out.println(Arrays.toString(register));
+        // main.runInstruction();
+        // System.out.println(Arrays.toString(register));
+        // main.runInstruction();
+        // System.out.println(Arrays.toString(register));
+        // main.runInstruction();
+        // System.out.println(Arrays.toString(register));
+        // main.runInstruction();
+        // System.out.println(Arrays.toString(register));
+        // main.runInstruction();
+        // System.out.println(Arrays.toString(register));
+        // main.runInstruction();
+        // System.out.println(Arrays.toString(register));
+        // main.runInstruction();
+        // System.out.println(Arrays.toString(register));
+        // main.runInstruction();
+        // System.out.println(Arrays.toString(register));
     }
 
     /**
@@ -119,13 +164,15 @@ public class Main {
         // R-type instructions
         if(inst.opcode == 0b0110011) {// ADD / SUB / SLL / SLT / SLTU / XOR / SRL / SRA / OR / AND
             rType(inst);
-            
         }
         if(inst.opcode == 0b00000000){ // NOP
-            //NOP();
-        
+            NOP();
         }
         register[0] = 0; // x0 must always be 0
+    }
+
+    private void NOP() {
+        System.out.println("End of program");
     }
 
     /**
@@ -247,7 +294,7 @@ public class Main {
                 
         if(inst.funct3 == 0b100){// XORI
             if ((register[inst.rs1] ^ inst.imm) != 0)
-                register[inst.rd] = 1;
+                register[inst.rd] = register[inst.rs1] ^ inst.imm;
             else
                 register[inst.rd] = 0;
             
@@ -256,7 +303,7 @@ public class Main {
 
         if(inst.funct3 == 0b110){ // ORI
             if ((register[inst.rs1] | inst.imm) != 0)
-            register[inst.rd] = 1;
+            register[inst.rd] = register[inst.rs1] | inst.imm;
             else
                 register[inst.rd] = 0;
            
@@ -265,7 +312,7 @@ public class Main {
    
         if(inst.funct3 == 0b111){ // ANDI
             if ((register[inst.rs1] & inst.imm) != 0)
-                register[inst.rd] = 1;
+                register[inst.rd] = register[inst.rs1] & inst.imm;
             else
                 register[inst.rd] = 0;
             
@@ -274,7 +321,7 @@ public class Main {
 
         if(inst.funct3 == 0b001){ // SLLI
             if ((register[inst.rs1] << inst.imm) != 0)
-                register[inst.rd] = 1;
+                register[inst.rd] = register[inst.rs1] << (inst.imm & 0x1F);
             else
                 register[inst.rd] = 0;
             
@@ -283,12 +330,16 @@ public class Main {
 
         if(inst.funct3 == 0b101){ // SRLI / SRAI
             int ShiftAmt = inst.imm & 0x1F; // The amount of shifting done by SRLI or SRAI
+            System.out.println(ShiftAmt);
+            //int f7 = inst.imm & 0b1111111;
+            //System.out.println(Integer.toBinaryString(inst.funct7));
             if(inst.funct7 == 0b0000000) {// SRLI
-                register[inst.rd] = register[inst.rs1] >>> ShiftAmt;
+                System.out.println(ShiftAmt);
+                register[inst.rd] = register[inst.rs1] >>> (inst.imm & 0x1F);
                 
             }
             if(inst.funct7 == 0b0100000) { // SRAI
-                register[inst.rd] = register[inst.rs1] >> ShiftAmt;
+                register[inst.rd] = register[inst.rs1] >> (inst.imm & 0x1F);
                 
             }
             
