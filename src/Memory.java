@@ -1,5 +1,4 @@
 package src;
-
 public class Memory {
     private int[] memory;
 

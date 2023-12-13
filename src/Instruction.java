@@ -1,5 +1,4 @@
 package src;
-
 public class Instruction {
     int instruction, opcode, rd, rs1, rs2, funct3, funct7, imm;
     boolean noRd = false;
