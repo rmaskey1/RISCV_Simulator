@@ -17,9 +17,6 @@ public class Main {
     private Instruction[] instructions;  // Array of all instructions instructions
     private Memory memory;          // Memory byte array
 
-    public int returnPcValue(){
-        return pc;
-    }
     /**
      * CPU constructor
      * Sets stack pointer to last address in memory (last index of byte array memory.getMemory()).
@@ -54,13 +51,14 @@ public class Main {
         this.instructions = new Instruction[machineLanguageLine.size()];
 
         for(int i = 0; i < machineLanguageLine.size(); i++){
-            System.out.println("Binary form: " + machineLanguageLine.get(i));
+            //System.out.println("Binary form: " + machineLanguageLine.get(i));
             BigInteger big = new BigInteger(machineLanguageLine.get(i),2);
             Instruction instrt = new Instruction(big.intValue());
             instructions[i] = instrt;
-            System.out.println("Assembly Form: " + instrt.bitToAssembly());
-            System.out.println();
+            //System.out.println("Assembly Form: " + instrt.bitToAssembly());
+            //
         }
+        System.out.println();
     }
 
     public static void main(String[] args) {
@@ -68,6 +66,7 @@ public class Main {
         Memory memory = new Memory();
         Main main = new Main(memory);
         Scanner scnr = new Scanner(System.in);
+        ArrayList<Integer> breakpoints = new ArrayList<Integer>();
 
         System.out.println("If there is an associated dmem file, enter the filepath here: ");
         String input = "tests\\dat_files\\"+scnr.nextLine();
@@ -98,22 +97,54 @@ public class Main {
             }
         }
         
-
+        boolean end = true;
+        int i = 0;
         while(true) {
             System.out.println("Input a command: ");
             input = scnr.nextLine();
             System.out.println();
+            
+            
+            if(input.substring(0,1).equals("b")) {
+
+                if (breakpoints.size() == 5) {
+                    System.out.println("Only 5 breakpoints allowed!");
+                }
+                else {
+                    breakpoints.add(Integer.valueOf(input.substring(2)));
+                    System.out.println("Added breakpoint at 0x00" + Integer.toHexString((Integer.parseInt(input.substring(2))*4) + 0x00400000));
+                }
+
+            }
             if(input.equals("r")) {
-                main.pc = 0;
-                int i = 0; 
                 while(main.pc < main.instructions.length && i < main.instructions.length) {
+                    if(breakpoints.contains(main.pc)) {
+                        System.out.println("Breakpoint encountered at 0x00" + Integer.toHexString((main.pc*4) + 0x00400000));
+                        breakpoints.remove(Integer.valueOf(main.pc));
+                        end = false;
+                        break;
+                    }
+                    System.out.println(Arrays.toString(register));
+                    System.out.println();
                     main.runInstruction();
                     i++;
                 }
-                System.out.println(Arrays.toString(register));
-                Arrays.fill(register, 0);
-                main.pc = 0;
-                System.out.println();
+                end = true;
+            }
+            else if(input.equals("c")) {
+                while(main.pc < main.instructions.length && i < main.instructions.length) {
+                    if(breakpoints.contains(main.pc)) {
+                        System.out.println("Breakpoint at PC = 0x00" + Integer.toHexString((main.pc*4) + 0x00400000));
+                        breakpoints.remove(Integer.valueOf(main.pc));
+                        end = false;
+                        break;
+                    }
+                    System.out.println(Arrays.toString(register));
+                    System.out.println();
+                    main.runInstruction();
+                    i++;
+                }
+                end = true;
             }
             else if(input.equals("s")) {
                 main.runInstruction();
@@ -140,6 +171,11 @@ public class Main {
                 String hexPC = Integer.toHexString((main.pc*4) + 0x00400000);
                 System.out.println("The current value of the PC is: 0x00"+hexPC);
             }
+            if(end) {
+                i = 0;
+                Arrays.fill(register, 0);
+                main.pc = 0;
+            }
         }
     }
 
@@ -155,7 +191,7 @@ public class Main {
             BufferedWriter bw = new BufferedWriter(fileWritter);
             bw.write(str + "\n");
             bw.close();
-            System.out.println("Instruction Added");
+            //System.out.println("Instruction Added");
         } catch(IOException e){
             e.printStackTrace();
 
@@ -169,7 +205,7 @@ public class Main {
     public void runInstruction() {
         prev = pc;
         Instruction inst = instructions[pc];
-        System.out.println(inst.assemblyString);
+        //System.out.println(inst.assemblyString);
         writeInstructionToFile(inst.assemblyString);
 
         //U-type instructions
