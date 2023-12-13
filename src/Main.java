@@ -17,6 +17,9 @@ public class Main {
     private Instruction[] instructions;  // Array of all instructions instructions
     private Memory memory;          // Memory byte array
 
+    public int returnPcValue(){
+        return pc;
+    }
     /**
      * CPU constructor
      * Sets stack pointer to last address in memory (last index of byte array memory.getMemory()).
@@ -132,6 +135,7 @@ public class Main {
                 System.out.println("The next instruction to be executed: " + inst.assemblyString);
                 System.out.println();
             }
+
             else if(input.equals("pc")) {
                 String hexPC = Integer.toHexString((main.pc*4) + 0x00400000);
                 System.out.println("The current value of the PC is: 0x00"+hexPC);
@@ -154,6 +158,7 @@ public class Main {
             System.out.println("Instruction Added");
         } catch(IOException e){
             e.printStackTrace();
+
         }
     }
 
