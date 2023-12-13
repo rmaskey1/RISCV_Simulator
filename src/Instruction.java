@@ -1,6 +1,6 @@
 package src;
 public class Instruction {
-    int instruction, opcode, rd, rs1, rs2, funct3, funct7, imm;
+    int instruction, opcode, rd, rs1, rs2, funct3, funct7, imm, shamt;
     boolean noRd = false;
     boolean sType = false;
     boolean ecall = false;
@@ -24,11 +24,12 @@ public class Instruction {
         }
         else if (opcode == 0b1100111 || opcode == 0b0000011 || opcode == 0b0010011 ) { // I-Type
             this.imm = (instruction >> 20); // bits 31 to 20
+            this.funct7 = (instruction >> 25) & 0x7F;
                 // No break since I-type also uses funct7 in shift instructions 
         }
         else if (opcode == 0b0110011) { // R-Type
             this.funct7 = (instruction >> 25) & 0x7F;   // bits 31 to 25
-                
+            
         }
         else if (opcode == 0b0100011) { // S-Type
             imm = (((instruction >> 20) & 0xFFFFFFE0) |
@@ -168,7 +169,7 @@ public class Instruction {
         else if (opcode == 0b0010011) { // ADDI / SLTI / SLTIU / XORI / ORI / ANDI / SLLI / SRLI / SRAI
             arg1 = String.format("x%d", rd);
             arg2 = String.format("x%d", rs1);
-            arg3 = String.format("%d", imm);
+            arg3 = String.format("%d", (imm));
                 if (funct3 == 0b000){ // ADDI
                     instr = "addi";
                     
@@ -203,13 +204,14 @@ public class Instruction {
                 }
                     
                 else if (funct3 == 0b101){ // SRLI / SRAI
+                    //funct7 = imm & 0b1111111;
                     if (funct7 == 0b0000000){ // SRLI
                         instr = "srli";
-                        
+                        arg3 = String.format("%d", (imm & 0x1F));
                     }
                     else if (funct7 == 0b0100000){ // SRAI
                         instr = "srai";
-                        
+                        arg3 = String.format("%d", (imm & 0x1F));
                     }
                 
                 }
