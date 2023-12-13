@@ -17,9 +17,6 @@ public class Main {
     private Instruction[] instructions;  // Array of all instructions instructions
     private Memory memory;          // Memory byte array
 
-    public int returnPcValue(){
-        return pc;
-    }
     /**
      * CPU constructor
      * Sets stack pointer to last address in memory (last index of byte array memory.getMemory()).
