@@ -63,8 +63,8 @@ public class Main {
         Memory memory = new Memory();
         Main main = new Main(memory);
         Scanner scnr = new Scanner(System.in);
-        boolean breakpoint = false;
-        int breakpointAddr = -1;
+        ArrayList<Integer> breakpoints = new ArrayList<Integer>();
+
 
         while(true) {
             System.out.println("Input a command: ");
@@ -72,22 +72,25 @@ public class Main {
             System.out.println();
 
             if(input.substring(0,1).equals("b")) {
-                breakpointAddr = Integer.valueOf(input.substring(2));
-                breakpoint = true;
+
+                if (breakpoints.size() == 5) {
+                    System.out.println("Only 5 breakpoints allowed!");
+                }
+                else {
+                    breakpoints.add(Integer.valueOf(input.substring(2)));
+                }
+
             }
+      
 
             else if(input.equals("r")) {
 
-                if (breakpoint) {
-                    while (main.pc != breakpointAddr) {
-                        main.runInstruction();
+                for(int i = 0; i < main.instructions.length; i++) {
+                    if (breakpoints.contains(main.pc)) {
+                        breakpoints.remove(Integer.valueOf(main.pc));
+                        break;
                     }
-                    breakpoint = false;
-                }
-                else {
-                    for(int i = 0; i < main.instructions.length; i++) {
-                        main.runInstruction();
-                    }
+                    main.runInstruction();
                 }
                 System.out.println(Arrays.toString(register));
                 /* Arrays.fill(register, 0);
