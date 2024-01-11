@@ -53,12 +53,10 @@ Firstly, you will have to choose the sample machine code file you want to run (w
 If there is predefined data that goes with the code, enter that file name next
 
 Once the machine code is loaded and compiled by the program, you can execute the following functions/commands:
-1. 'r': runs the entire program in one go till it hits a breakpoint or exits
+1. 'r': runs the entire program in one go until it hits a breakpoint or exits
 2. 's': runs the next instruction and then stops and waits for next command
-3. 'x0' to 'x31': return the contents of the register from the register file (x0 must always
-stay 0)
-4. '0x12345678' returns the contents from the address 0x12345678 in the data memory (applies for all addresses)
-This should work for all 32 bit addresses, the value shown above is an example
+3. 'x0' to 'x31': return the contents of the register from the register file (x0 must always stay 0)
+4. '0x12345678' returns the contents from the address 0x12345678 in the data memory (applies for all addresses, the given is just an example)
 5. 'pc': returns the value of the program counter
 6. 'ins': prints the "assembly of the instruction" that will be executed next
 7. 'b \[pc]': puts a breakpoint at a particular/ specified \[pc]. So, if 'r' is given as the next
