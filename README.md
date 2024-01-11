@@ -12,11 +12,8 @@ AutoGo is a web-based mock car rental website that emulates the experience of re
     - [Prerequisites](#prerequisites)
     - [Installation](#installation)
   - [Usage](#usage)
-  - [Roadmap](#roadmap)
   - [Contributing](#contributing)
-  - [License](#license)
   - [Contact](#contact)
-  - [Acknowledgements](#acknowledgements)
 
 ## About the Project
 
@@ -63,26 +60,10 @@ Once the machine code is loaded and compiled by the program, you can execute the
 command, the code will run till \pc] (or the end, if \[pc] is not hit) and then break there
 8. 'c': continues the execution until it hits the next breakpoint pc or exits
 
-### Roadmap
-
-The following improvements below will make AutoGo more accurate to existing car rental service websites as well as improve the user's experience while navigating the website:
-
-- Car Sorting Filters: In the future, we plan on adding filter to sort cars based on a certain criterion, such as sort by price, number of seats, miles/gallon, etc.
-- Email Invoice: We plan on developing an email invoice system for guest users who cannot track their orders through the website. Sending an email invoice to those users will allow them to confirm their order and cancel/return their car through a different method.
-- Interactive Map: As of now, the map view of our locations is not interactive. In the future, we plan on adding functionality to the map by letting users choose their pick-up and drop-off location by clicking on the location markers on the map.
-
 ### Contributing
 
 To contribute to this project, simply clone the repository and make changes to the code. Make sure to add a commit summary and description for every change made.
 
-### License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
 ### Contact
 
 Reshaj Maskey: https://github.com/rmaskey1
-Quan Mai: https://github.com/dmaighty
-Ayush Shresth: https://github.com/ayushshresth021
-
-### Acknowledgements
